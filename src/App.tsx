@@ -23,7 +23,6 @@ function consistencyRatio(A: Matrix, w: number[]) {
   return { lambdaMax, CI, CR: RI? CI/RI : 0 };
 }
 function erf(x: number){ const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911; const s=x<0?-1:1; x=Math.abs(x); const t=1/(1+p*x); const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x); return s*y; }
-function phi(z:number){ return 0.5*(1+erf(z/Math.SQRT2)); }
 
 function Section({title, children}:{title:string; children:React.ReactNode}) {
   return <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"><h2 className="text-xl font-semibold mb-3">{title}</h2>{children}</div>;
@@ -94,22 +93,7 @@ export default function App(){
     });
     setOptions(opts=>opts.map(o=>{ const s=[...o.scores]; s.splice(idx,1); return {...o,scores:s}; }));
   }
-  function addOption(){
-    const name=prompt("New option name?"); if(!name) return;
-    setOptions(opts=>[...opts,{name,scores:Array(criteria.length).fill(1)}]);
-  }
-  function removeOption(k:number){ setOptions(opts=>opts.filter((_,i)=>i!==k)); }
 
-  const finals = weighted.rows.map(r=>r.total);
-  const mean = finals.reduce((a,b)=>a+b,0)/(finals.length||1);
-  const [useSample,setUseSample]=useState(true);
-  const sd = useMemo(()=>{
-    const n=finals.length; if(!n) return NaN;
-    const denom = useSample? Math.max(1,n-1): n;
-    const v = finals.reduce((a,x)=>a+(x-mean)*(x-mean),0)/denom;
-    return Math.sqrt(v);
-  },[finals,mean,useSample]);
-  const zRows = finals.map((v,i)=>{ const z=(v-mean)/(sd||1e-12); return {name:options[i]?.name??`Opt ${i+1}`, value:v, z, cdf:phi(z), upper:1-phi(z)}; });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 text-slate-900 p-6">
