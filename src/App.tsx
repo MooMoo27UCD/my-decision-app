@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 
 type Matrix = number[][];
 const RI_TABLE: Record<number, number> = {1:0,2:0,3:0.58,4:0.90,5:1.12,6:1.24,7:1.32,8:1.41,9:1.45,10:1.49};
-const AHP_SCALE = [1,2,3,4,5,6,7,8,9];
+const AHP_SCALE = [1/9,1/8,1/7,1/6,1/5,1/4,1/3,1/2,1,2,3,4,5,6,7,8,9];
 
 const round = (x: number, d=3) => Number.isFinite(x) ? Number(x.toFixed(d)) : NaN;
 const clampPos = (x: number) => (Number.isFinite(x) && x > 0 ? x : 1);
@@ -117,12 +117,16 @@ export default function App(){
         <Section title="Step 1 — Pairwise Comparison Matrix (AHP)">
           <div className="flex flex-wrap gap-2 mb-3">
             <button className="px-3 py-2 rounded-lg border bg-white" onClick={addCriterion}>+ Add Criterion</button>
-            <div className="text-sm text-slate-600 ml-auto">
-              Consistency Ratio (CR): <span className={CR<=0.1?"text-emerald-700":"text-amber-700"}>{round(CR,3)}</span> {CR<=0.1?"(acceptable)":"(review judgments)"}
+            <div className="text-sm ml-auto">
+              <span className={`px-2 py-1 rounded-md border ${CR<=0.1? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
+                CR: {round(CR,3)} {CR<=0.1? '• acceptable' : '• review'}
+              </span>
             </div>
           </div>
           <p className="text-sm text-slate-600 mb-3">
-            Compare criteria <em>pairwise</em> using the AHP importance scale (1=equal, 3=moderate, 5=strong, 7=very strong, 9=extreme; use 2/4/6/8 for intermediates). The diagonal is 1, and reciprocals fill automatically. Columns are normalized to sum to 1; row averages give the final weights.
+            For each upper‑triangle cell (row <em>i</em> vs column <em>j</em>), pick a ratio on the 1–9 AHP scale. We now allow reciprocals directly:
+            <span className="font-mono">&nbsp;[1/9 … 1/2, 1, 2 … 9]</span>.
+            Interpretation: values <span className="font-mono">&gt;1</span> mean the <strong>row</strong> is more important than the column; values <span className="font-mono">&lt;1</span> mean the <strong>row</strong> is less important (i.e., the column is more important). The diagonal is 1 and the lower triangle auto‑fills with reciprocals. Columns are normalized to sum to 1; row averages yield the final weights.
           </p>
 
           <div className="overflow-auto">
@@ -156,9 +160,11 @@ export default function App(){
                                 value={String(v)}
                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setUpperVal(i, j, parseFloat(e.target.value))}
                               >
-                                {[...AHP_SCALE,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5].map(x=><option key={x} value={x}>{x}</option>)}
+                                {AHP_SCALE.map((x)=> (
+                                  <option key={x} value={x}>{Number(x).toPrecision(3).replace(/\.0+$/,'')}</option>
+                                ))}
                               </select>
-                              <span className="text-xs text-slate-500">({criteria[j]} vs {criteria[i]})</span>
+                              <span className="text-xs text-slate-500">row: {criteria[i]} vs col: {criteria[j]}</span>
                             </div>
                           </td>
                         );
